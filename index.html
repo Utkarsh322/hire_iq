@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HireIQ — AI-Powered HR Shortlisting Agent</title>
+  <meta name="description" content="Evaluate candidates fairly, consistently, and transparently against any Job Description using AI-powered scoring." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- For PDF/DOCX Resume Parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+  <!-- ═══════════ NAVBAR ═══════════ -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <div class="brand-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="8" fill="url(#brandGrad)"/>
+          <path d="M8 14L12 10L16 14L20 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 18L12 14L16 18L20 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+          <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#A855F7"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="brand-text">Hire<span class="brand-accent">IQ</span></span>
+    </div>
+    <div class="nav-steps" id="navSteps">
+      <div class="step active" data-step="1"><span class="step-num">1</span><span class="step-label">Setup</span></div>
+      <div class="step-line"></div>
+      <div class="step" data-step="2"><span class="step-num">2</span><span class="step-label">Candidates</span></div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3"><span class="step-num">3</span><span class="step-label">Results</span></div>
+    </div>
+    <div class="nav-actions">
+      <button id="btnThemeToggle" class="icon-btn" title="Toggle theme">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════ MAIN CONTENT ═══════════ -->
+  <main id="mainContent">
+
+    <!-- ──── SCREEN 1: API KEY + JD ──── -->
+    <section class="screen active" id="screen1">
+      <div class="screen-inner">
+        <div class="hero-header">
+          <div class="hero-badge">AI-Powered HR Agent</div>
+          <h1>Shortlist smarter.<br/><span class="gradient-text">Hire better.</span></h1>
+          <p class="hero-sub">Paste your Job Description below and let our AI evaluate every candidate fairly, consistently, and transparently.</p>
+        </div>
+
+        <div class="card glass-card" id="apiKeyCard">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </div>
+            <div>
+              <h2>AI Provider & API Key</h2>
+              <p class="card-desc">Your key stays in your browser — never sent to any server except the chosen provider.</p>
+            </div>
+          </div>
+
+          <!-- Provider Tabs -->
+          <div class="provider-tabs" id="providerTabs">
+            <button class="provider-tab active" data-provider="gemini">
+              <span class="provider-dot gemini-dot"></span> Gemini
+            </button>
+            <button class="provider-tab" data-provider="groq">
+              <span class="provider-dot groq-dot"></span> Groq <span class="badge free-badge">Free</span>
+            </button>
+            <button class="provider-tab" data-provider="openai">
+              <span class="provider-dot openai-dot"></span> OpenAI
+            </button>
+          </div>
+
+          <div class="input-group">
+            <input type="password" id="apiKeyInput" placeholder="Enter your Gemini API key…" autocomplete="off" />
+            <button id="btnToggleKey" class="icon-btn-sm" title="Show/hide key">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="model-selector">
+            <label for="modelSelect" class="model-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              Model
+            </label>
+            <select id="modelSelect">
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash (default)</option>
+              <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            </select>
+            <p class="model-hint" id="modelHint">If you hit quota limits, try switching to a different provider or model.</p>
+          </div>
+          <p class="provider-help" id="providerHelp">
+            Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>
+          </p>
+        </div>
+
+        <div class="card glass-card" id="jdCard">
+          <div class="card-header">
+            <div class="card-icon purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div>
+              <h2>Job Description</h2>
+              <p class="card-desc">Paste the complete JD — our AI extracts required skills, experience, education, and more.</p>
+            </div>
+          </div>
+          <textarea id="jdInput" rows="10" placeholder="Paste the full Job Description here…&#10;&#10;Example:&#10;We are looking for a Senior Frontend Developer with 5+ years of experience in React.js, TypeScript, and modern CSS. The ideal candidate should have experience with state management libraries, testing frameworks, and CI/CD pipelines. A Bachelor's degree in Computer Science is required. AWS certification is a plus."></textarea>
+          <div class="textarea-footer">
+            <span class="char-count" id="jdCharCount">0 chars</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btnToStep2" disabled>
+          <span>Continue to Candidates</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ──── SCREEN 2: CANDIDATE INPUT ──── -->
+    <section class="screen" id="screen2">
+      <div class="screen-inner">
+        <div class="section-header">
+          <button class="btn-ghost" id="btnBackToStep1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span>Back</span>
+          </button>
+          <h1>Add Candidates</h1>
+          <p class="hero-sub">Add each candidate's profile — resume text, LinkedIn summary, or any relevant content.</p>
+        </div>
+
+        <div id="candidatesContainer"></div>
+
+        <button class="btn-outline" id="btnAddCandidate">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Add Candidate</span>
+        </button>
+
+        <div class="divider"></div>
+
+        <!-- Override Section -->
+        <div class="card glass-card" id="overrideCard">
+          <div class="card-header">
+            <div class="card-icon orange">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <h2>HR Overrides <span class="badge">Optional</span></h2>
+              <p class="card-desc">Force a verdict for specific candidates. These won't alter scores — only the verdict.</p>
+            </div>
+          </div>
+          <textarea id="overrideInput" rows="3" placeholder="OVERRIDE: John Doe | Hire | Strong referral from CTO&#10;OVERRIDE: Jane Smith | No Hire | Background check failed"></textarea>
+        </div>
+
+        <button class="btn-primary" id="btnEvaluate" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Evaluate Candidates</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ──── SCREEN 3: PROCESSING ──── -->
+    <section class="screen" id="screenProcessing">
+      <div class="screen-inner center-content">
+        <div class="processing-container">
+          <div class="pulse-ring"></div>
+          <div class="processing-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h2>Analyzing Candidates…</h2>
+          <p class="processing-sub" id="processingStatus">Parsing job description and extracting requirements…</p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="processing-steps" id="processingSteps">
+            <div class="p-step active" id="pStep1"><span class="p-dot"></span>Parsing JD</div>
+            <div class="p-step" id="pStep2"><span class="p-dot"></span>Scoring candidates</div>
+            <div class="p-step" id="pStep3"><span class="p-dot"></span>Calculating rankings</div>
+            <div class="p-step" id="pStep4"><span class="p-dot"></span>Generating report</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──── SCREEN 4: RESULTS DASHBOARD ──── -->
+    <section class="screen" id="screen3">
+      <div class="screen-inner">
+        <div class="results-header">
+          <div>
+            <h1>Evaluation Results</h1>
+            <p class="hero-sub" id="resultsSubtitle">Candidates ranked by weighted total score</p>
+          </div>
+          <div class="results-actions">
+            <button class="btn-outline" id="btnExportJSON">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Export JSON</span>
+            </button>
+            <button class="btn-outline" id="btnExportCSV">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>Export CSV</span>
+            </button>
+            <button class="btn-ghost" id="btnNewEvaluation">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              <span>New Evaluation</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card stat-total">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total Evaluated</div>
+          </div>
+          <div class="stat-card stat-hire">
+            <div class="stat-value" id="statHire">0</div>
+            <div class="stat-label">Hire</div>
+          </div>
+          <div class="stat-card stat-maybe">
+            <div class="stat-value" id="statMaybe">0</div>
+            <div class="stat-label">Maybe</div>
+          </div>
+          <div class="stat-card stat-nohire">
+            <div class="stat-value" id="statNoHire">0</div>
+            <div class="stat-label">No Hire</div>
+          </div>
+        </div>
+
+        <!-- JD Summary -->
+        <div class="card glass-card collapsible" id="jdSummaryCard">
+          <div class="card-header clickable" id="jdSummaryToggle">
+            <div class="card-icon blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+              <h2>JD Summary</h2>
+              <p class="card-desc">Extracted requirements from the Job Description</p>
+            </div>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="collapsible-content" id="jdSummaryContent"></div>
+        </div>
+
+        <!-- Candidate Cards -->
+        <div id="candidateResults"></div>
+
+        <!-- Override Log -->
+        <div class="card glass-card" id="overrideLogCard" style="display:none;">
+          <div class="card-header">
+            <div class="card-icon orange">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <h2>Override Log</h2>
+              <p class="card-desc">HR-mandated verdict changes</p>
+            </div>
+          </div>
+          <div id="overrideLogContent"></div>
+        </div>
+
+        <!-- Raw JSON -->
+        <div class="card glass-card collapsible">
+          <div class="card-header clickable" id="rawJsonToggle">
+            <div class="card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <div>
+              <h2>Raw JSON Output</h2>
+              <p class="card-desc">Complete structured evaluation data</p>
+            </div>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="collapsible-content">
+            <pre><code id="rawJsonOutput"></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════ ERROR TOAST ═══════════ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
