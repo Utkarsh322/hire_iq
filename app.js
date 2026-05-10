@@ -154,7 +154,7 @@ async function handleResumeUpload(event, id) {
     hiddenInput.value = text.trim();
     statusEl.textContent = 'File parsed successfully!';
     statusEl.style.color = 'var(--green)';
-    uploadText.textContent = \`Attached: \${file.name}\`;
+    uploadText.textContent = `Attached: ${file.name}`;
     uploadText.style.color = 'var(--text)';
     
     // Attempt to auto-fill name from filename
