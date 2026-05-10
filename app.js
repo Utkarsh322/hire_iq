@@ -114,16 +114,16 @@ function addCandidate() {
   div.innerHTML = `
     <div class="card-header" style="justify-content: space-between; align-items: center; width: 100%;">
       <span class="candidate-num">#${n}</span>
-      <button class="btn-remove" onclick="removeCandidate(${n})" title="Remove candidate" style="position:static;">&times;</button>
+      <button class="btn-remove" onclick="removeCandidate(${n})" title="Remove candidate">&times;</button>
     </div>
-    <input type="text" class="candidate-name-input" placeholder="Candidate Full Name" oninput="validateStep2()" />
-    <div id="upload-area-${n}" class="upload-area" style="border: 2px dashed rgba(255,255,255,0.2); padding: 30px 20px; text-align: center; border-radius: 8px; margin-top: 14px; cursor: pointer; transition: 0.3s; background: rgba(0,0,0,0.2);" onclick="document.getElementById('file-${n}').click()" onmouseover="this.style.background='rgba(0,0,0,0.3)'" onmouseout="this.style.background='rgba(0,0,0,0.2)'">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <p id="upload-text-${n}" style="margin-top: 12px; color: var(--text-dim); font-size: 0.95rem; font-weight: 500;">Click to upload Resume (PDF, DOCX, TXT)</p>
-      <input type="file" id="file-${n}" accept=".pdf,.docx,.txt" style="display: none;" />
+    <input type="text" class="candidate-name-input" placeholder="Candidate Full Name" oninput="validateStep2()" style="margin-top:8px; margin-bottom:12px;" />
+    <div id="upload-area-${n}" class="upload-area" onclick="document.getElementById('file-${n}').click()">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p id="upload-text-${n}" style="margin-top:10px; color:var(--text-muted); font-size:0.84rem; font-weight:500;">Click to upload Resume (PDF, DOCX, TXT)</p>
+      <input type="file" id="file-${n}" accept=".pdf,.docx,.txt" style="display:none;" />
     </div>
     <input type="hidden" class="candidate-profile-data" id="profile-${n}" value="" />
-    <div id="file-status-${n}" style="font-size:0.75rem; color:var(--accent); margin-top:8px; display:none; text-align: center;"></div>
+    <div id="file-status-${n}" style="font-size:0.72rem; color:var(--accent); margin-top:8px; display:none; text-align:center;"></div>
   `;
   container.appendChild(div);
 

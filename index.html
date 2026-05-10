@@ -15,15 +15,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
+
   <!-- ═══════════ NAVBAR ═══════════ -->
   <nav id="navbar">
     <div class="nav-brand">
       <div class="brand-icon">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect width="28" height="28" rx="8" fill="url(#brandGrad)"/>
+          <rect width="28" height="28" rx="6" fill="url(#brandGrad)"/>
           <path d="M8 14L12 10L16 14L20 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M8 18L12 14L16 18L20 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-          <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#A855F7"/></linearGradient></defs>
+          <path d="M8 18L12 14L16 18L20 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+          <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
         </svg>
       </div>
       <span class="brand-text">Hire<span class="brand-accent">IQ</span></span>
@@ -45,28 +46,64 @@
   <!-- ═══════════ MAIN CONTENT ═══════════ -->
   <main id="mainContent">
 
-    <!-- ──── SCREEN 1: API KEY + JD ──── -->
+    <!-- ──── SCREEN 1: SETUP ──── -->
     <section class="screen active" id="screen1">
       <div class="screen-inner">
-        <div class="hero-header">
-          <div class="hero-badge">AI-Powered HR Agent</div>
-          <h1>Shortlist smarter.<br/><span class="gradient-text">Hire better.</span></h1>
-          <p class="hero-sub">Paste your Job Description below and let our AI evaluate every candidate fairly, consistently, and transparently.</p>
-        </div>
 
-        <div class="card glass-card" id="modelCard">
-          <div class="card-header">
-            <div class="card-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            </div>
-            <div>
-              <h2>AI Model Selection</h2>
-              <p class="card-desc">Powered by Groq's lightning-fast inference engine.</p>
+        <!-- Hero -->
+        <div class="hero-header">
+          <span class="section-label">AI-POWERED RECRUITMENT</span>
+          <h1>Shortlist with<br/><span class="gradient-text">mathematical precision.</span></h1>
+          <p class="hero-sub">Deploy AI scoring against your job description. Every candidate evaluated on 5 dimensions. Zero bias. Full transparency.</p>
+
+          <!-- Trust Marquee -->
+          <div class="marquee-wrap">
+            <div class="marquee-track">
+              <span class="marquee-item">5-Dimension Scoring</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">Bias-Free Evaluation</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">PDF & DOCX Parsing</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">JSON/CSV Export</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">70B Parameter LLM</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">Sub-second Inference</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">HR Override Support</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">5-Dimension Scoring</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">Bias-Free Evaluation</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">PDF & DOCX Parsing</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">JSON/CSV Export</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">70B Parameter LLM</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">Sub-second Inference</span>
+              <span class="marquee-dot">·</span>
+              <span class="marquee-item">HR Override Support</span>
+              <span class="marquee-dot">·</span>
             </div>
           </div>
+        </div>
 
-          <div class="model-selector" style="margin-top: 0;">
-            <select id="modelSelect" style="width: 100%;">
+        <!-- Model Selection Card -->
+        <div class="card" id="modelCard">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div>
+              <h2>AI MODEL</h2>
+              <p class="card-desc">Powered by Groq — lightning-fast inference.</p>
+            </div>
+          </div>
+          <div class="model-selector">
+            <select id="modelSelect">
               <option value="llama-3.3-70b-versatile">Llama 3.3 70B (recommended)</option>
               <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (fast)</option>
               <option value="gemma2-9b-it">Gemma 2 9B</option>
@@ -75,38 +112,40 @@
           </div>
         </div>
 
-        <div class="card glass-card" id="jdCard">
+        <!-- JD Card -->
+        <div class="card" id="jdCard">
           <div class="card-header">
             <div class="card-icon purple">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             </div>
             <div>
-              <h2>Job Description</h2>
-              <p class="card-desc">Paste the complete JD — our AI extracts required skills, experience, education, and more.</p>
+              <h2>JOB DESCRIPTION</h2>
+              <p class="card-desc">Paste the complete JD — our AI extracts skills, experience, and qualification requirements.</p>
             </div>
           </div>
-          <textarea id="jdInput" rows="10" placeholder="Paste the full Job Description here…&#10;&#10;Example:&#10;We are looking for a Senior Frontend Developer with 5+ years of experience in React.js, TypeScript, and modern CSS. The ideal candidate should have experience with state management libraries, testing frameworks, and CI/CD pipelines. A Bachelor's degree in Computer Science is required. AWS certification is a plus."></textarea>
+          <textarea id="jdInput" rows="8" placeholder="We are looking for a Senior Frontend Developer with 5+ years of experience in React.js, TypeScript, and modern CSS. The ideal candidate should have experience with state management libraries, testing frameworks, and CI/CD pipelines..."></textarea>
           <div class="textarea-footer">
             <span class="char-count" id="jdCharCount">0 chars</span>
           </div>
         </div>
 
-        <div class="card glass-card" id="countCard">
+        <!-- Candidate Count Card -->
+        <div class="card" id="countCard">
           <div class="card-header">
-            <div class="card-icon blue" style="color: #60a5fa;">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="card-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <div>
-              <h2>Number of Candidates</h2>
-              <p class="card-desc">How many resumes will you be evaluating?</p>
+              <h2>NUMBER OF CANDIDATES</h2>
+              <p class="card-desc">How many resumes will you evaluate?</p>
             </div>
           </div>
-          <input type="number" id="numCandidatesInput" min="1" max="50" value="2" class="candidate-name-input" style="margin-top: 0; background: rgba(0,0,0,0.1);" />
+          <input type="number" id="numCandidatesInput" min="1" max="50" value="2" />
         </div>
 
         <button class="btn-primary" id="btnToStep2" disabled>
           <span>Continue to Candidates</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </div>
     </section>
@@ -119,8 +158,9 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             <span>Back</span>
           </button>
-          <h1>Add Candidates</h1>
-          <p class="hero-sub">Add each candidate's profile — resume text, LinkedIn summary, or any relevant content.</p>
+          <span class="section-label">CANDIDATE INPUT</span>
+          <h1>Upload Resumes</h1>
+          <p class="hero-sub">Attach each candidate's resume below. Supports PDF, DOCX, and TXT formats.</p>
         </div>
 
         <div id="candidatesContainer"></div>
@@ -133,21 +173,21 @@
         <div class="divider"></div>
 
         <!-- Override Section -->
-        <div class="card glass-card" id="overrideCard">
+        <div class="card" id="overrideCard">
           <div class="card-header">
             <div class="card-icon orange">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <div>
-              <h2>HR Overrides <span class="badge">Optional</span></h2>
-              <p class="card-desc">Force a verdict for specific candidates. These won't alter scores — only the verdict.</p>
+              <h2>HR OVERRIDES <span class="badge">Optional</span></h2>
+              <p class="card-desc">Force a verdict for specific candidates. Scores remain untouched.</p>
             </div>
           </div>
           <textarea id="overrideInput" rows="3" placeholder="OVERRIDE: John Doe | Hire | Strong referral from CTO&#10;OVERRIDE: Jane Smith | No Hire | Background check failed"></textarea>
         </div>
 
         <button class="btn-primary" id="btnEvaluate" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span>Evaluate Candidates</span>
         </button>
       </div>
@@ -181,7 +221,8 @@
       <div class="screen-inner">
         <div class="results-header">
           <div>
-            <h1>Evaluation Results</h1>
+            <span class="section-label">EVALUATION COMPLETE</span>
+            <h1>Results Dashboard</h1>
             <p class="hero-sub" id="resultsSubtitle">Candidates ranked by weighted total score</p>
           </div>
           <div class="results-actions">
@@ -221,13 +262,13 @@
         </div>
 
         <!-- JD Summary -->
-        <div class="card glass-card collapsible" id="jdSummaryCard">
+        <div class="card collapsible" id="jdSummaryCard">
           <div class="card-header clickable" id="jdSummaryToggle">
             <div class="card-icon blue">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
             <div>
-              <h2>JD Summary</h2>
+              <h2>JD SUMMARY</h2>
               <p class="card-desc">Extracted requirements from the Job Description</p>
             </div>
             <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -239,13 +280,13 @@
         <div id="candidateResults"></div>
 
         <!-- Override Log -->
-        <div class="card glass-card" id="overrideLogCard" style="display:none;">
+        <div class="card" id="overrideLogCard" style="display:none;">
           <div class="card-header">
             <div class="card-icon orange">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <div>
-              <h2>Override Log</h2>
+              <h2>OVERRIDE LOG</h2>
               <p class="card-desc">HR-mandated verdict changes</p>
             </div>
           </div>
@@ -253,13 +294,13 @@
         </div>
 
         <!-- Raw JSON -->
-        <div class="card glass-card collapsible">
+        <div class="card collapsible">
           <div class="card-header clickable" id="rawJsonToggle">
             <div class="card-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             </div>
             <div>
-              <h2>Raw JSON Output</h2>
+              <h2>RAW JSON OUTPUT</h2>
               <p class="card-desc">Complete structured evaluation data</p>
             </div>
             <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
