@@ -566,9 +566,10 @@ function renderOverrideLog(log) {
 // ═══════════ EXPORTS ═══════════
 function exportJSON() {
   if (!evaluationResult) return;
-  const blob = new Blob([JSON.stringify(evaluationResult, null, 2)], { type: 'application/json' });
-  downloadBlob(blob, 'hireiq-evaluation.json');
-  showToast('JSON exported successfully!', 'success');
+  // Use text/plain and .txt extension so Windows opens it in Notepad by default
+  const blob = new Blob([JSON.stringify(evaluationResult, null, 2)], { type: 'text/plain' });
+  downloadBlob(blob, 'hireiq-evaluation.txt');
+  showToast('Data exported successfully as TXT!', 'success');
 }
 
 function exportCSV() {
