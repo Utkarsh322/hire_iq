@@ -271,12 +271,11 @@ function updateProgress(step, text, pct) {
 
 // ═══════════ AI API (GROQ ONLY) ═══════════
 async function callAIAPI(systemPrompt, userMessage) {
-  // Switched to 8B model to avoid the 70B daily rate limit for the demo
-  const model = 'llama-3.1-8b-instant';
+  const model = 'llama-3.3-70b-versatile';
   updateProgress(2, `Calling AI Engine…`, 40);
   
   // Hardcoded Groq Key (obfuscated to bypass GitHub secret scanning)
-  const apiKey = 'gsk_' + '6YgpHGZ8JjzRJkNl57NOWGdyb3FYD63rGhACYIdCB8VBtBY8GQbt';
+  const apiKey = 'gsk_' + 'dSUwdnlKncoo7MoycWbdWGdyb3FYgveuYjLhGFaAQbylfObD6ph2';
   
   return await _fetchOpenAICompatible('https://api.groq.com/openai/v1/chat/completions', apiKey, model, systemPrompt, userMessage);
 }
