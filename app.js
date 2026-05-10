@@ -271,8 +271,8 @@ function updateProgress(step, text, pct) {
 
 // ═══════════ AI API (GROQ ONLY) ═══════════
 async function callAIAPI(systemPrompt, userMessage) {
-  const model = 'mixtral-8x7b-32768';
-  updateProgress(2, `Calling Groq/${model}…`, 40);
+  const model = 'llama-3.3-70b-versatile';
+  updateProgress(2, `Calling AI Engine…`, 40);
   
   // Hardcoded Groq Key (obfuscated to bypass GitHub secret scanning)
   const apiKey = 'gsk_' + '6YgpHGZ8JjzRJkNl57NOWGdyb3FYD63rGhACYIdCB8VBtBY8GQbt';
