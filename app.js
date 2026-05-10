@@ -271,7 +271,8 @@ function updateProgress(step, text, pct) {
 
 // ═══════════ AI API (GROQ ONLY) ═══════════
 async function callAIAPI(systemPrompt, userMessage) {
-  const model = 'llama-3.3-70b-versatile';
+  // Switched to 8B model to avoid the 70B daily rate limit for the demo
+  const model = 'llama-3.1-8b-instant';
   updateProgress(2, `Calling AI Engine…`, 40);
   
   // Hardcoded Groq Key (obfuscated to bypass GitHub secret scanning)
