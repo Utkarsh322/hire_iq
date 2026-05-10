@@ -15,8 +15,6 @@ const $$ = (sel) => document.querySelectorAll(sel);
 // ─── Init ───
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  addCandidate();
-  addCandidate();
   bindEvents();
   validateStep1();
 });
@@ -38,7 +36,22 @@ function bindEvents() {
     $('#jdCharCount').textContent = `${$('#jdInput').value.length} chars`;
     validateStep1();
   });
-  $('#btnToStep2').addEventListener('click', () => goToStep(2));
+  $('#btnToStep2').addEventListener('click', () => {
+    const targetCount = parseInt($('#numCandidatesInput').value, 10) || 1;
+    const currentCount = $$('.candidate-card').length;
+    
+    if (currentCount < targetCount) {
+      for (let i = currentCount; i < targetCount; i++) addCandidate();
+    } else if (currentCount > targetCount) {
+      const cards = $$('.candidate-card');
+      for (let i = currentCount - 1; i >= targetCount; i--) {
+        cards[i].remove();
+      }
+      renumberCandidates();
+      validateStep2();
+    }
+    goToStep(2);
+  });
   $('#btnBackToStep1').addEventListener('click', () => goToStep(1));
   $('#btnAddCandidate').addEventListener('click', addCandidate);
   $('#btnEvaluate').addEventListener('click', startEvaluation);
