@@ -271,7 +271,7 @@ function updateProgress(step, text, pct) {
 
 // ═══════════ AI API (GROQ ONLY) ═══════════
 async function callAIAPI(systemPrompt, userMessage) {
-  const model = $('#modelSelect').value;
+  const model = 'mixtral-8x7b-32768';
   updateProgress(2, `Calling Groq/${model}…`, 40);
   
   // Hardcoded Groq Key (obfuscated to bypass GitHub secret scanning)
