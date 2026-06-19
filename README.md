@@ -27,15 +27,26 @@ HireIQ is a modern, AI-powered web application that helps HR professionals evalu
    cd hire_iq
    ```
 
-2. **Run the application:**
-   Since this is a client-side application, you can simply open `index.html` in your web browser. For the best experience (and to avoid CORS issues with local files), serve the directory using a simple HTTP server:
+2. **Install dependencies:**
+   This project runs on a secure Express backend. Install dependencies using:
    ```bash
-   npx serve .
+   npm install
    ```
 
 3. **Provide API Keys:**
-   - Obtain an API key from your preferred provider ([Google AI Studio](https://aistudio.google.com/apikey), [Groq Console](https://console.groq.com/keys), or OpenAI).
-   - Enter your key in the app's Setup screen. The key is stored locally in your browser and is only sent directly to the respective API.
+   - Ensure you have a `.env` file in the root directory.
+   - Define your Groq API key:
+     ```env
+     GROQ_API_KEY=your_groq_api_key_here
+     ```
+   *(Note: Keeping API keys in the `.env` file ensures they remain securely on the server side and are never exposed to the frontend client.)*
+
+4. **Run the application:**
+   Start the Node.js Express server:
+   ```bash
+   npm start
+   ```
+   Then open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ## Project Structure
 

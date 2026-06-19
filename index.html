@@ -108,6 +108,60 @@
           </div>
         </div>
 
+        <!-- Scoring Weights Card -->
+        <div class="card" id="weightsCard">
+          <div class="card-header">
+            <div class="card-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+            </div>
+            <div>
+              <h2>SCORING WEIGHTS</h2>
+              <p class="card-desc">Distribute weights across evaluation dimensions (must equal 100%).</p>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 6px;">
+                <span>Skills Match</span>
+                <span id="weightSkillsVal" style="font-weight: 700; color: var(--accent);">30%</span>
+              </div>
+              <input type="range" id="sliderSkills" min="0" max="100" value="30" />
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 6px;">
+                <span>Experience Relevance</span>
+                <span id="weightExperienceVal" style="font-weight: 700; color: var(--accent);">25%</span>
+              </div>
+              <input type="range" id="sliderExperience" min="0" max="100" value="25" />
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 6px;">
+                <span>Education & Certs</span>
+                <span id="weightEducationVal" style="font-weight: 700; color: var(--accent);">15%</span>
+              </div>
+              <input type="range" id="sliderEducation" min="0" max="100" value="15" />
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 6px;">
+                <span>Project / Portfolio</span>
+                <span id="weightPortfolioVal" style="font-weight: 700; color: var(--accent);">20%</span>
+              </div>
+              <input type="range" id="sliderPortfolio" min="0" max="100" value="20" />
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 6px;">
+                <span>Communication Quality</span>
+                <span id="weightCommsVal" style="font-weight: 700; color: var(--accent);">10%</span>
+              </div>
+              <input type="range" id="sliderComms" min="0" max="100" value="10" />
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.9rem;">
+              <span style="font-weight: 600; color: var(--text-dim);">Total Weight:</span>
+              <span id="weightTotalVal" style="font-weight: 800; font-family: var(--mono); color: var(--green);">100%</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Candidate Count Card -->
         <div class="card" id="countCard">
           <div class="card-header">
@@ -288,6 +342,40 @@
             <pre><code id="rawJsonOutput"></code></pre>
           </div>
         </div>
+
+        <!-- Sticky Comparison Trigger Button -->
+        <div id="compareTriggerContainer" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none; transition: opacity 0.3s;">
+          <button class="btn-primary" id="btnShowComparison" style="width: auto; padding: 12px 24px; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4); border-radius: 30px; font-weight: 700; background: linear-gradient(135deg, var(--accent), #818cf8);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M16 3h5v5M8 21H3v-5M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0M21 3L14 10M3 21l7-7"/></svg>
+            <span>Compare Selected (0)</span>
+          </button>
+        </div>
+
+        <!-- Comparison Panel (In-flow expanded card) -->
+        <div class="card" id="comparisonPanel" style="display: none; margin-top: 32px; border: 1px solid var(--accent); box-shadow: 0 0 20px rgba(59,130,246,0.15); animation: screenIn 0.4s ease both;">
+          <div class="card-header" style="justify-content: space-between; align-items: center; width: 100%; display: flex;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="card-icon blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M8 21H3v-5M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0M21 3L14 10M3 21l7-7"/></svg>
+              </div>
+              <div style="text-align: left;">
+                <h2>CANDIDATE COMPARISON</h2>
+                <p class="card-desc">Side-by-side analysis of selected candidates</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-outline" id="btnClearComparison" style="font-size: 0.78rem; padding: 6px 12px; height: 32px;">Clear Comparison</button>
+              <button class="btn-ghost" id="btnCloseComparison" style="font-size: 1.4rem; padding: 0 8px; font-weight: 700; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1;">&times;</button>
+            </div>
+          </div>
+          
+          <div style="overflow-x: auto; margin-top: 16px;">
+            <table id="comparisonTable" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+              <!-- Dynamic Table Generated in JS -->
+            </table>
+          </div>
+        </div>
+
       </div>
     </section>
   </main>

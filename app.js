@@ -7,6 +7,8 @@
 let currentStep = 1;
 let candidateCount = 0;
 let evaluationResult = null;
+let currentWeights = { skills: 30, experience: 25, education: 15, portfolio: 20, communication: 10 };
+let selectedCompareIndices = [];
 
 // ─── DOM Refs ───
 const $ = (sel) => document.querySelector(sel);
@@ -16,7 +18,8 @@ const $$ = (sel) => document.querySelectorAll(sel);
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   bindEvents();
-  validateStep1();
+  initWeightSliders();
+  updateWeightsTotal();
 });
 
 // ═══════════ THEME ═══════════
@@ -59,7 +62,36 @@ function bindEvents() {
   $('#btnExportCSV').addEventListener('click', exportCSV);
   $('#btnNewEvaluation').addEventListener('click', () => {
     evaluationResult = null;
+    clearComparison();
     goToStep(1);
+  });
+
+  // Comparison Panel triggers
+  $('#btnShowComparison').addEventListener('click', () => {
+    renderComparisonTable();
+    const panel = $('#comparisonPanel');
+    if (panel) {
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  $('#btnClearComparison').addEventListener('click', clearComparison);
+
+  $('#btnCloseComparison').addEventListener('click', () => {
+    const panel = $('#comparisonPanel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  // Handle click on compare labels when checkboxes are disabled to explain the 3 candidate limit
+  document.addEventListener('click', (e) => {
+    const label = e.target.closest('.compare-label');
+    if (label) {
+      const cb = label.querySelector('.compare-checkbox');
+      if (cb && cb.disabled) {
+        showToast('You can only compare up to 3 candidates.', 'error');
+      }
+    }
   });
 
   // Collapsibles
@@ -72,7 +104,49 @@ function bindEvents() {
 // ═══════════ VALIDATION ═══════════
 function validateStep1() {
   const jd = $('#jdInput').value.trim();
-  $('#btnToStep2').disabled = !(jd.length >= 30);
+  const wSkills = parseInt($('#sliderSkills').value, 10) || 0;
+  const wExp = parseInt($('#sliderExperience').value, 10) || 0;
+  const wEdu = parseInt($('#sliderEducation').value, 10) || 0;
+  const wPort = parseInt($('#sliderPortfolio').value, 10) || 0;
+  const wComms = parseInt($('#sliderComms').value, 10) || 0;
+  const total = wSkills + wExp + wEdu + wPort + wComms;
+
+  const weightsValid = total === 100;
+  $('#btnToStep2').disabled = !(jd.length >= 30 && weightsValid);
+}
+
+function initWeightSliders() {
+  const sliders = ['Skills', 'Experience', 'Education', 'Portfolio', 'Comms'];
+  sliders.forEach(s => {
+    const el = $(`#slider${s}`);
+    if (el) {
+      el.addEventListener('input', () => {
+        $(`#weight${s}Val`).textContent = `${el.value}%`;
+        updateWeightsTotal();
+      });
+    }
+  });
+}
+
+function updateWeightsTotal() {
+  const wSkills = parseInt($('#sliderSkills').value, 10) || 0;
+  const wExp = parseInt($('#sliderExperience').value, 10) || 0;
+  const wEdu = parseInt($('#sliderEducation').value, 10) || 0;
+  const wPort = parseInt($('#sliderPortfolio').value, 10) || 0;
+  const wComms = parseInt($('#sliderComms').value, 10) || 0;
+  const total = wSkills + wExp + wEdu + wPort + wComms;
+
+  const totalEl = $('#weightTotalVal');
+  if (totalEl) {
+    totalEl.textContent = `${total}%`;
+    if (total === 100) {
+      totalEl.style.color = 'var(--green)';
+    } else {
+      totalEl.style.color = 'var(--red)';
+    }
+  }
+
+  validateStep1();
 }
 
 function validateStep2() {
@@ -199,6 +273,7 @@ function renumberCandidates() {
 
 // ═══════════ EVALUATION ═══════════
 async function startEvaluation() {
+  clearComparison();
   const jd = $('#jdInput').value.trim();
   const overrides = $('#overrideInput').value.trim();
 
@@ -222,8 +297,22 @@ async function startEvaluation() {
   const candidatesText = candidates.map((c) => `Name: ${c.name}\nProfile: ${c.profile}`).join('\n---\n');
   let inputText = `JD:\n${jd}\n\nCANDIDATES:\n${candidatesText}`;
   if (overrides) inputText += `\n\n${overrides}`;
+  // Save weights for calculations and UI rendering
+  currentWeights = {
+    skills: parseInt($('#sliderSkills').value, 10) || 0,
+    experience: parseInt($('#sliderExperience').value, 10) || 0,
+    education: parseInt($('#sliderEducation').value, 10) || 0,
+    portfolio: parseInt($('#sliderPortfolio').value, 10) || 0,
+    communication: parseInt($('#sliderComms').value, 10) || 0
+  };
 
-  const systemPrompt = buildSystemPrompt();
+  const systemPrompt = buildSystemPrompt(
+    currentWeights.skills,
+    currentWeights.experience,
+    currentWeights.education,
+    currentWeights.portfolio,
+    currentWeights.communication
+  );
 
   try {
     updateProgress(1, 'Parsing job description…', 15);
@@ -269,48 +358,27 @@ function updateProgress(step, text, pct) {
   }
 }
 
-// ═══════════ AI API (GROQ ONLY) ═══════════
+// ═══════════ AI API (SECURE PROXY) ═══════════
 async function callAIAPI(systemPrompt, userMessage) {
-  const model = 'llama-3.3-70b-versatile';
   updateProgress(2, `Calling AI Engine…`, 40);
   
-  // Hardcoded Groq Key (obfuscated to bypass GitHub secret scanning)
-  const apiKey = 'gsk_' + 'dSUwdnlKncoo7MoycWbdWGdyb3FYgveuYjLhGFaAQbylfObD6ph2';
-  
-  return await _fetchOpenAICompatible('https://api.groq.com/openai/v1/chat/completions', apiKey, model, systemPrompt, userMessage);
-}
-
-// ─── OpenAI-compatible fetch (Groq, OpenAI) ───
-async function _fetchOpenAICompatible(endpoint, apiKey, model, systemPrompt, userMessage) {
-  const body = {
-    model: model,
-    messages: [
-      { role: 'system', content: systemPrompt + '\n\nIMPORTANT: Return ONLY valid JSON. No markdown fences, no explanation.' },
-      { role: 'user', content: userMessage }
-    ],
-    temperature: 0.2,
-    max_tokens: 8192,
-    response_format: { type: 'json_object' }
-  };
-
-  const res = await fetch(endpoint, {
+  const res = await fetch('/api/evaluate', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify({ systemPrompt, userMessage })
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = err?.error?.message || err?.error || `API error ${res.status}`;
+    const msg = err?.error || `Server error ${res.status}`;
     throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
   }
 
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
-  if (!text) throw new Error('Empty response from API');
+  if (!text) throw new Error('Empty response from AI server');
   return _parseJSONResponse(text);
 }
 
@@ -328,7 +396,13 @@ function _parseJSONResponse(text) {
 }
 
 // ═══════════ SYSTEM PROMPT ═══════════
-function buildSystemPrompt() {
+function buildSystemPrompt(wSkills = 30, wExp = 25, wEdu = 15, wPort = 20, wComms = 10) {
+  const fSkills = (wSkills / 100).toFixed(2);
+  const fExp = (wExp / 100).toFixed(2);
+  const fEdu = (wEdu / 100).toFixed(2);
+  const fPort = (wPort / 100).toFixed(2);
+  const fComms = (wComms / 100).toFixed(2);
+
   return `You are an expert AI-powered HR Shortlisting Agent. Your job is to evaluate candidates fairly, consistently, and transparently against a Job Description (JD).
 
 STRICT RULES:
@@ -345,14 +419,14 @@ STEP 1 — PARSE THE JD:
 Before scoring anyone, extract from the JD: Role title, Required skills (must-have), Preferred skills (nice-to-have), Minimum years of experience, Domain/industry, Education requirement, Certification requirements.
 
 STEP 2 — SCORE EACH CANDIDATE on 5 dimensions (0–10 each):
-1. Skills Match (Weight: 30%) — 0=<30% match, 3=30-49%, 5=50-70%, 7=71-84%, 10=85%+ including nice-to-haves
-2. Experience Relevance (Weight: 25%) — 0=Unrelated domain far below years, 3=Adjacent below, 5=Adjacent OR right years wrong domain, 7=Same domain close seniority, 10=Exact domain+required/exceeding seniority
-3. Education & Certs (Weight: 15%) — 0=Does not meet minimum, 3=Partially meets, 5=Meets minimum exactly, 7=Exceeds minimum OR holds relevant certs, 10=Strongly exceeds+extra certs
-4. Project/Portfolio (Weight: 20%) — 0=No projects mentioned, 3=Vague/irrelevant, 5=1-2 generic projects, 7=Relevant projects with impact metrics, 10=Strong relevant portfolio with clear impact
-5. Communication Quality (Weight: 10%) — 0=Poor grammar incoherent, 3=Hard to follow, 5=Adequate clarity, 7=Clear structured good flow, 10=Crisp professional impactful
+1. Skills Match (Weight: ${wSkills}%) — 0=<30% match, 3=30-49%, 5=50-70%, 7=71-84%, 10=85%+ including nice-to-haves
+2. Experience Relevance (Weight: ${wExp}%) — 0=Unrelated domain far below years, 3=Adjacent below, 5=Adjacent OR right years wrong domain, 7=Same domain close seniority, 10=Exact domain+required/exceeding seniority
+3. Education & Certs (Weight: ${wEdu}%) — 0=Does not meet minimum, 3=Partially meets, 5=Meets minimum exactly, 7=Exceeds minimum OR holds relevant certs, 10=Strongly exceeds+extra certs
+4. Project/Portfolio (Weight: ${wPort}%) — 0=No projects mentioned, 3=Vague/irrelevant, 5=1-2 generic projects, 7=Relevant projects with impact metrics, 10=Strong relevant portfolio with clear impact
+5. Communication Quality (Weight: ${wComms}%) — 0=Poor grammar incoherent, 3=Hard to follow, 5=Adequate clarity, 7=Clear structured good flow, 10=Crisp professional impactful
 
 STEP 3 — CALCULATE:
-weighted_total = (skills×0.30 + experience×0.25 + education×0.15 + portfolio×0.20 + communication×0.10)
+weighted_total = (skills×${fSkills} + experience×${fExp} + education×${fEdu} + portfolio×${fPort} + communication×${fComms})
 CRITICAL: The final weighted_total must be out of 10, not 100. Calculate it exactly as the formula above (since max dimension score is 10, max weighted total is 10). Round to 1 decimal place.
 
 STEP 4 — DIFFERENTIATION & TIE-BREAKING (CRITICAL!):
@@ -367,6 +441,12 @@ STEP 6 — UNDERRATED CANDIDATE:
 You must select exactly ONE candidate who has a "Maybe" or "No Hire" verdict but shows hidden potential (e.g., unconventional background, great projects but no degree, high passion). Mark this candidate by adding a field \`"underrated_candidate": true\` to their object. Only ONE candidate can have this.
 
 STEP 7 — Sort candidates by weighted_total descending.
+
+STEP 8 — EXTRACT SCORE EVIDENCE (CRITICAL!):
+For each of the 5 scoring dimensions, extract 1-2 literal, word-for-word quotes from the candidate's resume/profile that you used to justify that score. Do not paraphrase, summarize, or alter these quotes. They must be exact excerpts of their text. If no evidence exists (or the section is missing), write "Not mentioned in profile". Put these in the "evidence" object in the JSON schema.
+
+STEP 9 — RED FLAGS DETECTION (CRITICAL!):
+Scan the candidate's resume/profile to identify potential warning signs, such as: employment gaps > 6 months, lack of critical skill requirements listed in the JD, frequent job-hopping (e.g. less than 1 year per role multiple times), mismatch of seniority expectations, or lack of required degrees/certifications. List these as concise strings in the "red_flags" array. If no red flags are found, return an empty array [].
 
 If HR sends overrides like "OVERRIDE: <name> | <verdict> | <reason>", log them in override_log without altering scores.
 
@@ -403,6 +483,14 @@ OUTPUT THIS EXACT JSON SCHEMA:
         "portfolio": "string citing specific evidence",
         "communication": "string citing specific evidence"
       },
+      "evidence": {
+        "skills": "exact literal direct quote from the resume for skills match",
+        "experience": "exact literal direct quote from the resume for experience relevance",
+        "education": "exact literal direct quote from the resume for education and certifications",
+        "portfolio": "exact literal direct quote from the resume for project/portfolio",
+        "comms": "exact literal direct quote from the resume showing communication quality"
+      },
+      "red_flags": ["string"],
       "weighted_total": number,
       "verdict": "Hire" | "Maybe" | "No Hire",
       "strengths": ["string"],
@@ -486,11 +574,11 @@ function renderCandidateCards(candidates) {
     const verdictBadgeClass = c.verdict === 'Hire' ? 'verdict-hire' : c.verdict === 'Maybe' ? 'verdict-maybe' : 'verdict-nohire';
 
     const dims = [
-      { key: 'skills', label: 'Skills', weight: '30%' },
-      { key: 'experience', label: 'Experience', weight: '25%' },
-      { key: 'education', label: 'Education', weight: '15%' },
-      { key: 'portfolio', label: 'Portfolio', weight: '20%' },
-      { key: 'communication', label: 'Comms', weight: '10%' }
+      { key: 'skills', label: 'Skills', weight: `${currentWeights.skills}%` },
+      { key: 'experience', label: 'Experience', weight: `${currentWeights.experience}%` },
+      { key: 'education', label: 'Education', weight: `${currentWeights.education}%` },
+      { key: 'portfolio', label: 'Portfolio', weight: `${currentWeights.portfolio}%` },
+      { key: 'communication', label: 'Comms', weight: `${currentWeights.communication}%` }
     ];
 
     const card = document.createElement('div');
@@ -498,8 +586,15 @@ function renderCandidateCards(candidates) {
     card.style.animationDelay = `${i * 0.1}s`;
     card.innerHTML = `
       <div class="result-top">
-        <div class="result-name-area">
-          <div class="rank-badge">${c.rank || i + 1}</div>
+        <div class="result-name-area" style="display: flex; align-items: center; gap: 12px;">
+          <div class="rank-badge" style="position: relative;">
+            ${c.rank || i + 1}
+          </div>
+          ${(c.red_flags || []).length >= 3 ? `
+            <div class="warning-badge" style="background: var(--yellow-bg); border: 1px solid rgba(234,179,8,0.3); color: var(--yellow); padding: 6px 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; height: 36px; width: 36px;" title="3+ Red Flags Detected">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          ` : ''}
           <div>
             <div class="result-name">
               ${esc(c.name)}
@@ -509,7 +604,13 @@ function renderCandidateCards(candidates) {
             <div class="result-score">Score: <span>${c.weighted_total}</span>/10</div>
           </div>
         </div>
-        <span class="verdict-badge ${verdictBadgeClass}">${c.verdict}</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <label class="compare-label" style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-dim); cursor: pointer; user-select: none;">
+            <input type="checkbox" class="compare-checkbox" data-index="${i}" onchange="handleCompareChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent);" />
+            <span>Compare</span>
+          </label>
+          <span class="verdict-badge ${verdictBadgeClass}">${c.verdict}</span>
+        </div>
       </div>
 
       <div class="score-bars">
@@ -520,6 +621,44 @@ function renderCandidateCards(candidates) {
             <span class="score-val">${c.scores?.[d.key] ?? 0}</span>
           </div>`).join('')}
       </div>
+
+      <button class="btn-outline btn-evidence-toggle" onclick="toggleEvidence(this, ${i})" style="width: 100%; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 10px 14px;">
+        <svg class="evidence-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.3s;"><polyline points="6 9 12 15 18 9"/></svg>
+        <span>Show Evidence</span>
+      </button>
+
+      <div id="evidence-panel-${i}" class="evidence-panel" style="display: none; margin-bottom: 16px;">
+        <div class="evidence-container" style="display: flex; flex-direction: column; gap: 10px;">
+          ${dims.map(d => {
+            const evKey = d.key === 'communication' ? 'comms' : d.key;
+            const quote = c.evidence?.[evKey] || 'No direct evidence found in profile.';
+            return `
+              <div class="evidence-chip" style="padding: 12px; background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--accent); border-radius: 4px; font-size: 0.8rem; text-align: left;">
+                <div style="font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); margin-bottom: 4px;">${d.label} Quote</div>
+                <blockquote style="font-style: italic; color: var(--text); line-height: 1.5; margin: 0;">"${esc(quote)}"</blockquote>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Red Flags panel (only if c.red_flags exists and is not empty) -->
+      ${(c.red_flags || []).length > 0 ? `
+        <div class="collapsible-red-flags" style="margin-bottom: 16px; border: 1px solid rgba(234, 179, 8, 0.2); border-radius: var(--radius-sm); background: rgba(234, 179, 8, 0.02); overflow: hidden;">
+          <div class="clickable" onclick="this.parentElement.classList.toggle('open');" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; cursor: pointer; user-select: none;">
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--yellow);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>⚠ Red Flags Detected (${c.red_flags.length})</span>
+            </div>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.3s; color: var(--yellow);"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="red-flags-content">
+            <ul style="list-style: disc; margin-left: 18px; margin-bottom: 12px; font-size: 0.8rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; text-align: left;">
+              ${c.red_flags.map(f => `<li style="line-height: 1.4;">${esc(f)}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      ` : ''}
 
       <div class="justifications">
         ${dims.map(d => `
@@ -593,7 +732,8 @@ function downloadBlob(blob, filename) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Defer revocation so the browser has time to initiate the download before the URL is invalidated
+  setTimeout(() => URL.revokeObjectURL(url), 150);
 }
 
 // ═══════════ UTILITIES ═══════════
@@ -630,6 +770,157 @@ function animateStats() {
   });
 }
 
+function toggleEvidence(btn, index) {
+  const panel = document.getElementById(`evidence-panel-${index}`);
+  const chevron = btn.querySelector('.evidence-chevron');
+  const label = btn.querySelector('span');
+  
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    label.textContent = 'Hide Evidence';
+    chevron.style.transform = 'rotate(180deg)';
+    btn.style.color = 'var(--text)';
+    btn.style.borderColor = 'var(--accent)';
+  } else {
+    panel.style.display = 'none';
+    label.textContent = 'Show Evidence';
+    chevron.style.transform = 'rotate(0deg)';
+    btn.style.color = 'var(--text-dim)';
+    btn.style.borderColor = 'var(--border)';
+  }
+}
+
 // Make removeCandidate global
 window.removeCandidate = removeCandidate;
 window.validateStep2 = validateStep2;
+window.toggleEvidence = toggleEvidence;
+
+// ═══════════ CANDIDATE COMPARISON ═══════════
+function handleCompareChange(checkbox) {
+  const idx = parseInt(checkbox.dataset.index, 10);
+  if (checkbox.checked) {
+    if (selectedCompareIndices.length >= 3) {
+      checkbox.checked = false;
+      showToast('You can only compare up to 3 candidates.', 'error');
+      return;
+    }
+    selectedCompareIndices.push(idx);
+  } else {
+    selectedCompareIndices = selectedCompareIndices.filter(i => i !== idx);
+  }
+  updateCompareButtonState();
+}
+
+function updateCompareButtonState() {
+  const count = selectedCompareIndices.length;
+  const btn = $('#btnShowComparison');
+  const container = $('#compareTriggerContainer');
+  
+  if (btn && container) {
+    const span = btn.querySelector('span');
+    if (span) span.textContent = `Compare Selected (${count})`;
+    if (count >= 1) {
+      container.style.display = 'block';
+      container.style.opacity = '1';
+    } else {
+      container.style.display = 'none';
+      container.style.opacity = '0';
+    }
+  }
+  
+  const checkboxes = $$('.compare-checkbox');
+  checkboxes.forEach(cb => {
+    const idx = parseInt(cb.dataset.index, 10);
+    const label = cb.closest('.compare-label');
+    if (selectedCompareIndices.includes(idx)) {
+      cb.disabled = false;
+      if (label) label.style.opacity = '1';
+    } else {
+      cb.disabled = count >= 3;
+      if (label) label.style.opacity = count >= 3 ? '0.5' : '1';
+    }
+  });
+}
+
+function renderComparisonTable() {
+  if (!evaluationResult || selectedCompareIndices.length === 0) return;
+  
+  const selectedCandidates = selectedCompareIndices.map(idx => evaluationResult.candidates[idx]);
+  
+  // Build header row: Dimension, and candidate names
+  let html = `<thead><tr><th style="width: 250px;">Dimension</th>`;
+  selectedCandidates.forEach(c => {
+    html += `<th style="text-align: center;">${esc(c.name)}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+  
+  const dims = [
+    { key: 'skills', label: 'Skills Match' },
+    { key: 'experience', label: 'Experience Relevance' },
+    { key: 'education', label: 'Education & Certs' },
+    { key: 'portfolio', label: 'Project / Portfolio' },
+    { key: 'communication', label: 'Communication Quality' }
+  ];
+  
+  // Render dimension rows
+  dims.forEach(d => {
+    html += `<tr><td>${d.label}</td>`;
+    
+    const scores = selectedCandidates.map(c => c.scores?.[d.key] ?? 0);
+    const maxScore = Math.max(...scores);
+    const minScore = Math.min(...scores);
+    const hasDiff = maxScore > minScore;
+    
+    selectedCandidates.forEach(c => {
+      const score = c.scores?.[d.key] ?? 0;
+      let cellClass = '';
+      if (hasDiff) {
+        if (score === maxScore) cellClass = 'highlight-high';
+        else if (score === minScore) cellClass = 'highlight-low';
+      }
+      html += `<td style="text-align: center;" class="${cellClass}">${score} / 10</td>`;
+    });
+    html += `</tr>`;
+  });
+  
+  // Render Overall Weighted Score row
+  html += `<tr><td><strong>Weighted Total</strong></td>`;
+  const totalScores = selectedCandidates.map(c => parseFloat(c.weighted_total) || 0);
+  const maxTotal = Math.max(...totalScores);
+  const minTotal = Math.min(...totalScores);
+  const hasTotalDiff = maxTotal > minTotal;
+  
+  selectedCandidates.forEach(c => {
+    const total = parseFloat(c.weighted_total) || 0;
+    let cellClass = '';
+    if (hasTotalDiff) {
+      if (total === maxTotal) cellClass = 'highlight-high';
+      else if (total === minTotal) cellClass = 'highlight-low';
+    }
+    html += `<td style="text-align: center; font-weight: bold;" class="${cellClass}">${total} / 10</td>`;
+  });
+  html += `</tr></tbody>`;
+  
+  $('#comparisonTable').innerHTML = html;
+}
+
+function clearComparison() {
+  selectedCompareIndices = [];
+  
+  const checkboxes = $$('.compare-checkbox');
+  checkboxes.forEach(cb => {
+    cb.checked = false;
+    cb.disabled = false;
+  });
+  
+  updateCompareButtonState();
+  
+  const panel = $('#comparisonPanel');
+  if (panel) panel.style.display = 'none';
+}
+
+window.handleCompareChange = handleCompareChange;
+window.clearComparison = clearComparison;
+window.renderComparisonTable = renderComparisonTable;
+window.updateCompareButtonState = updateCompareButtonState;
+
